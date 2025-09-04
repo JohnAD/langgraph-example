@@ -1,53 +1,64 @@
-"""LangGraph single-node graph template.
-
-Returns a predefined response. Replace logic and configuration as needed.
-"""
-
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict, TypedDict
+import os
+from typing import Literal, Annotated
 
+from langchain_core.messages import BaseMessage
+from langchain_core.tools import tool
+from langchain_openai import ChatOpenAI
+from langgraph.constants import END
 from langgraph.graph import StateGraph
-from langgraph.runtime import Runtime
+from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode
+from pydantic import BaseModel, SecretStr
+
+from src.agent.prompts import get_leading_prompts
 
 
-class Context(TypedDict):
-    """Context parameters for the agent.
-
-    Set these when creating assistants OR when invoking the graph.
-    See: https://langchain-ai.github.io/langgraph/cloud/how-tos/configuration_cloud/
-    """
-
-    my_configurable_param: str
+class State(BaseModel):
+    messages: Annotated[list[BaseMessage], add_messages]
 
 
-@dataclass
-class State:
-    """Input state for the agent.
-
-    Defines the initial structure of incoming data.
-    See: https://langchain-ai.github.io/langgraph/concepts/low_level/#state
-    """
-
-    changeme: str = "example"
+@tool
+def get_weather(location: str) -> str:
+    return "cold and rainy"
 
 
-async def call_model(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
-    """Process input and returns output.
+TOOLS = "tools"
+tools = [get_weather]
+tool_node = ToolNode(tools)
 
-    Can use runtime context to alter behavior.
-    """
+llm = ChatOpenAI(
+    api_key=SecretStr(os.environ['TA_OPENAI_KEY']),
+    model="gpt-4o"
+)
+
+llm_with_tools = llm.bind_tools(tools)
+
+ASSISTANT = "assistant"
+
+
+async def assistant(state: State):
+    all_messages = get_leading_prompts() + list(state["messages"])
     return {
-        "changeme": "output from call_model. "
-        f"Configured with {runtime.context.get('my_configurable_param')}"
+        "messages": [await llm_with_tools.ainvoke(all_messages)]
     }
 
 
+def should_continue(state: State) -> Literal['tools', '__end__']:
+    messages = state['messages']
+    last_message = messages[-1]
+    if last_message.tool_calls:
+        return "tools"
+    return END
+
+
 # Define the graph
-graph = (
-    StateGraph(State, context_schema=Context)
-    .add_node(call_model)
-    .add_edge("__start__", "call_model")
-    .compile(name="New Graph")
-)
+graph = StateGraph(state_schema=State)
+graph.add_node(TOOLS, tool_node)
+graph.add_node(ASSISTANT, assistant)
+graph.add_edge(TOOLS, ASSISTANT)
+graph.add_conditional_edges(ASSISTANT, should_continue)
+graph.set_entry_point(ASSISTANT)
+
+graph = graph.compile()
