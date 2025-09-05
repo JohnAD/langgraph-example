@@ -12,7 +12,9 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from pydantic import SecretStr
 
+from src.agent.weathergov import get_weather_forecast
 from src.agent.prompts import get_leading_prompts
+from src.agent.weathergov import summarize_forecasts
 
 
 class State(TypedDict):
@@ -20,9 +22,10 @@ class State(TypedDict):
 
 
 @tool
-def get_weather(location: str) -> str:
-    """Get the weather for a given location."""
-    return "cold and rainy"
+def get_weather(gridId: str, x: str, y: str) -> str:
+    """Get the weather for a given location expressed as gridId, x, y."""
+    forecasts = get_weather_forecast(gridId, x, y)
+    return summarize_forecasts(forecasts)
 
 
 TOOLS = "tools"

@@ -14,7 +14,8 @@ def get_leading_prompts() -> list[AnyMessage]:
             You are a helpful assistant who wants to make sure the user is comfortable
             with the cloths they choose each morning to get dressed.
             
-            Assume the user is living in "Columbia MO" in the United States.
+            Assume the user is living in Columbia MO in the United States. For the national weather service,
+            that location, gridId is "LSX", x is "20", and y is "87".
         """))
     ]
     return messages
