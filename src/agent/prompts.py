@@ -1,10 +1,10 @@
 import asyncio
 import textwrap
 
-from langchain_core.messages import SystemMessage, BaseMessage
+from langchain_core.messages import SystemMessage, AnyMessage
 
 
-def get_leading_prompts() -> list[BaseMessage]:
+def get_leading_prompts() -> list[AnyMessage]:
     # chat_prompt_template = await asyncio.to_thread(client.pull_prompt, f'blahblah')
     # template_args = {
     # }

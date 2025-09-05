@@ -1,26 +1,27 @@
 from __future__ import annotations
 
 import os
-from typing import Literal, Annotated
+from typing import Literal, Annotated, TypedDict
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import AnyMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.constants import END
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
-from pydantic import BaseModel, SecretStr
+from pydantic import SecretStr
 
 from src.agent.prompts import get_leading_prompts
 
 
-class State(BaseModel):
-    messages: Annotated[list[BaseMessage], add_messages]
+class State(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
 
 
 @tool
 def get_weather(location: str) -> str:
+    """Get the weather for a given location."""
     return "cold and rainy"
 
 
@@ -46,7 +47,7 @@ async def assistant(state: State):
 
 
 def should_continue(state: State) -> Literal['tools', '__end__']:
-    messages = state['messages']
+    messages = state["messages"]
     last_message = messages[-1]
     if last_message.tool_calls:
         return "tools"
@@ -54,7 +55,7 @@ def should_continue(state: State) -> Literal['tools', '__end__']:
 
 
 # Define the graph
-graph = StateGraph(state_schema=State)
+graph = StateGraph(State)
 graph.add_node(TOOLS, tool_node)
 graph.add_node(ASSISTANT, assistant)
 graph.add_edge(TOOLS, ASSISTANT)
