@@ -6,6 +6,7 @@ from braintrust import init_logger
 from braintrust_langchain import BraintrustCallbackHandler, set_global_handler
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
+from pydantic import SecretStr
 
 
 async def main():
@@ -15,7 +16,7 @@ async def main():
     set_global_handler(handler)
 
     # Use any LangChain supported model here
-    model = ChatOpenAI(model="gpt-4o-mini")
+    model = ChatOpenAI(api_key=SecretStr(os.environ['TA_OPENAI_KEY']), model="gpt-4o-mini")
 
     def say_hello(state: Dict[str, str]):
         response = model.invoke("Say hello")
