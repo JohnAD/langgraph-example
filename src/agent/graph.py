@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 from typing import Literal, Annotated, TypedDict
 
+from braintrust import init_logger
+from braintrust_langchain import BraintrustCallbackHandler, set_global_handler
 from langchain_core.messages import AnyMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
@@ -16,6 +18,9 @@ from src.agent.weathergov import get_weather_forecast
 from src.agent.prompts import get_leading_prompts
 from src.agent.weathergov import summarize_forecasts
 
+init_logger(project="My Project", api_key=os.environ.get("BRAINTRUST_API_KEY"))
+handler = BraintrustCallbackHandler()
+set_global_handler(handler)
 
 class State(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
