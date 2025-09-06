@@ -16,6 +16,8 @@ def get_leading_prompts() -> list[AnyMessage]:
             
             Assume the user is living in Columbia MO in the United States. For the national weather service,
             that location, gridId is "LSX", x is "20", and y is "87".
+            
+            Be extra polite.
         """))
     ]
     return messages
