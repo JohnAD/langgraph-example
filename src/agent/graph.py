@@ -37,6 +37,8 @@ async def main():
     )
 
     graph = workflow.compile()
+    await graph.ainvoke({})
     return graph
+
 
 graph = asyncio.run(main())
