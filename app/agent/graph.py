@@ -14,9 +14,9 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from pydantic import SecretStr
 
-from src.agent.weathergov import get_weather_forecast
-from src.agent.prompts import get_leading_prompts
-from src.agent.weathergov import summarize_forecasts
+from app.agent.weathergov import get_weather_forecast
+from app.agent.prompts import get_leading_prompts
+from app.agent.weathergov import summarize_forecasts
 
 provider = TracerProvider()
 provider.add_span_processor(BraintrustSpanProcessor("My Project"))
